@@ -28,6 +28,8 @@ public:
 
     void startDevices();
 
+    void readAll();
+
     void unload();
 
 private:

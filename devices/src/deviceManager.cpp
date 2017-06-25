@@ -60,7 +60,21 @@ void DeviceManager::addDevice(uint16_t vendorId, uint16_t productId) {
     numberOfDevicesRegistred++;
 }
 
+void DeviceManager::readAll(){
+    for(int i = 0; i < numberOfDevicesRegistred; i++){
+        if (controllers[i].handler!=NULL){
+            if(libusb_claim_interface(controllers[i].handler, i) != 0){
+                fprintf(stderr, "Failed reading Joystick %d trying to reconnect...\n", controllers[i].number); // Print on the screen
+                controllers[i].handler=NULL;
+            } else{
+                // Retrieve data from joystick WIP
+                libusb_release_interface(controllers[i].handler, i);
+            }
+        } else{
+                startDevices();
+            }
     }
+}
 
 void DeviceManager::unload() {
     libusb_exit(context);

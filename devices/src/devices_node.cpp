@@ -22,7 +22,8 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(50);
 
     while(ros::ok()){
-
+        device.readAll();
+        
         ros::spinOnce();
         loop_rate.sleep();
     }
