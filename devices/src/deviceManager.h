@@ -12,6 +12,7 @@
 /*##################################################*/
 
 typedef struct {
+    uint8_t number;
     uint16_t vendor;
     uint16_t product;
     libusb_device *usbDevice;
@@ -31,7 +32,7 @@ public:
 
 private:
     controller controllers[MAX_CONTROLLERS];
-    int numberOfDevices = 0;
+    int numberOfDevicesRegistred = 0;
     libusb_device **devices;
     libusb_context *context = NULL;
 

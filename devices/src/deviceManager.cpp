@@ -53,20 +53,15 @@ void DeviceManager::startDevices() {
     libusb_free_device_list(devices, 1);
 }
 
-void DeviceManager::unload() {
-    libusb_free_device_list(devices, 1);
-    libusb_exit(context);
+void DeviceManager::addDevice(uint16_t vendorId, uint16_t productId) {
+    controllers[numberOfDevicesRegistred].number = numberOfDevicesRegistred+1;
+    controllers[numberOfDevicesRegistred].vendor = vendorId;
+    controllers[numberOfDevicesRegistred].product = productId;
+    numberOfDevicesRegistred++;
 }
 
-void DeviceManager::addDevice(uint16_t vendorId, uint16_t productId) {
-    if (numberOfDevices == MAX_CONTROLLERS) {
-        fprintf(stderr,
-                "Device Manager: You can only add up to %d controllers, you can change that value in the configurations file",
-                MAX_CONTROLLERS);
-        exit(1);
-    } else {
-        controllers[numberOfDevices].vendor = vendorId;
-        controllers[numberOfDevices].product = productId;
-        numberOfDevices++;
     }
+
+void DeviceManager::unload() {
+    libusb_exit(context);
 }
