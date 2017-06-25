@@ -22,7 +22,7 @@ void DeviceManager::startDevices() {
         struct libusb_device_descriptor desc;
         if (libusb_get_device_descriptor(devices[i], &desc) >= 0) {
             uint8_t j;
-            for (j = 0; j < numberOfDevices; j++) {
+            for (j = 0; j < numberOfDevicesRegistred; j++) {
                 if (desc.idVendor == controllers[j].vendor && desc.idProduct == controllers[j].product) {
                     // Controller Found, so add it to our controllers
                     controllers[j].usbDevice = devices[i];
@@ -30,22 +30,20 @@ void DeviceManager::startDevices() {
                     if (open == 0) {
                         // Take control of the controller
                         if (libusb_kernel_driver_active(controllers[j].handler, 0) == 1) {
-                            printf("Joystick!\n");
                             if (libusb_detach_kernel_driver(controllers[j].handler, 0) != 0) {
-                                fprintf(stderr,
-                                        "Failed to take control of the controller number %d\n"
-                                                "Are you using it?\n", j);
+                                fprintf(stderr,"Failed to take control of the controller number %d\nAre you using it?\n", controllers[j].number);
                             }
-                        } else{
-                            printf("Joystick!\n");
                         }
                     } else {
-                        if (open == -3) {
+                        controllers[j].handler=NULL;
+                        if (open == LIBUSB_ERROR_ACCESS) {
                             fprintf(stderr, "You don't have permissions to access the controller\n");
-                        } else {
-                            fprintf(stderr, "Failed to open the controller number %d\n"
-                                    "Maybe it's faulty, please do maintenance\n"
-                                    "ERROR CODE: %d", j, open);
+                        } else if (open == LIBUSB_ERROR_NO_MEM){
+                            fprintf(stderr, "No memory available to allocate controller %d\n", controllers[j].number);
+                        } else if (open == LIBUSB_ERROR_NO_DEVICE){
+                            fprintf(stderr, "Controller %d has been disconnected\n", controllers[j].number);
+                        } else if (open == LIBUSB_ERROR_IO){
+                            fprintf(stderr, "Failed to open the controller number %d due to an unknown error\n", controllers[j].number, open);
                         }
                     }
                 }
