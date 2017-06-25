@@ -3,38 +3,39 @@
 
 #endif //USB_DEVICEMANAGER_H
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <vector>
 #include "libusb/libusb.h"
 
 /*###############    CONFIGURATION   ###############*/
-#define MAX_CONTROLLERS 4
+
 /*##################################################*/
 
 typedef struct {
-    uint8_t number;
     uint16_t vendor;
     uint16_t product;
-    libusb_device *usbDevice;
+    libusb_device *usbDevice = NULL;
     libusb_device_handle *handler = NULL;
 
 } controller;
 
 class DeviceManager {
 public:
+    std::vector<controller> controllers;
+
     void init();
 
     void addDevice(uint16_t vendorId, uint16_t productId);
 
-    void startDevices();
+    void getDevices();
 
-    void readAll();
+    void prepareDevices();
+
+    void releaseDevices();
 
     void unload();
 
 private:
-    controller controllers[MAX_CONTROLLERS];
-    int numberOfDevicesRegistred = 0;
     libusb_device **devices;
     libusb_context *context = NULL;
 

@@ -12,7 +12,7 @@ int main(int argc, char **argv){
     device.init();
     device.addDevice(0x79, 0x06);
     device.addDevice(0x2563, 0x523);
-    device.startDevices();
+    device.getDevices();
 
     CmdVel_pub[0] = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     CmdVel_pub[1] = nh.advertise<geometry_msgs::Twist>("/cmd_vel2", 1);
@@ -22,8 +22,9 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(50);
 
     while(ros::ok()){
-        device.readAll();
-        
+        device.prepareDevices();
+
+        device.releaseDevices();
         ros::spinOnce();
         loop_rate.sleep();
     }
