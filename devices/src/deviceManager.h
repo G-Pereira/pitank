@@ -11,34 +11,42 @@
 
 /*##################################################*/
 
+typedef struct{
+    uint16_t vendor;
+    uint16_t product;
+} SupportedController;
+
 typedef struct {
     uint16_t vendor;
     uint16_t product;
     libusb_device *usbDevice = NULL;
     libusb_device_handle *handler = NULL;
 
-} controller;
+} Controller;
 
 class DeviceManager {
 public:
-    std::vector<controller> controllers;
+    std::vector<Controller> controllers;
 
     void init();
 
-    void addDevice(uint16_t vendorId, uint16_t productId);
-
+    // Search, filter and get control of controllers
     void getDevices();
 
-    void prepareDevices();
+    // Add trusted controllers to filter usb devices
+    void addControllerType(uint16_t vendorId, uint16_t productId);
 
-    void releaseDevices();
-
+    // Release memory
     void unload();
 
 private:
+    std::vector<SupportedController> supportedControllers;
     libusb_device **devices;
     libusb_context *context = NULL;
 
     ssize_t list;
     size_t i;
+
+    // Add new or reconected controllers
+    int addController(uint16_t vendorId, uint16_t productId, libusb_device *device, libusb_device_handle *handler);
 };
