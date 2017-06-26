@@ -45,7 +45,7 @@ int main(int argc, char **argv){
                     CmdVel[i].linear.x 	= 0;
                     CmdVel[i].linear.z 	= 0;
                     CmdVel[i].angular.z	= 0;
-                    // Allocate 8 bytes to store controller response + the end byte
+                    // Allocate 8 bytes to store controller response
                     USBbuffer = (unsigned char *)calloc(9,1);
                     int bitsReceived;
                     // Read the controllers' buffer
