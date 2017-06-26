@@ -8,7 +8,7 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
     geometry_msgs::Twist CmdVel[4];
     ros::Publisher CmdVel_pub[4];
-    unsigned char *USBbuffer;
+    unsigned char USBbuffer[9];
 
     // Helper class
     DeviceManager deviceManager;
@@ -25,7 +25,7 @@ int main(int argc, char **argv){
     CmdVel_pub[2] = nh.advertise<geometry_msgs::Twist>("/cmd_vel3", 1);
     CmdVel_pub[3] = nh.advertise<geometry_msgs::Twist>("/cmd_vel4", 1);
 
-    ros::Rate loop_rate(1);
+    ros::Rate loop_rate(50);
 
     while(ros::ok()){
         // Go through every controller and read its data
@@ -45,8 +45,7 @@ int main(int argc, char **argv){
                     CmdVel[i].linear.x 	= 0;
                     CmdVel[i].linear.z 	= 0;
                     CmdVel[i].angular.z	= 0;
-                    // Allocate 8 bytes to store controller response
-                    USBbuffer = (unsigned char *)calloc(9,1);
+
                     int bitsReceived;
                     // Read the controllers' buffer
                     libusb_bulk_transfer(deviceManager.controllers[i].handler,0x81,USBbuffer,8,&bitsReceived,1000);
