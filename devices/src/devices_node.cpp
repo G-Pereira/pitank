@@ -1,6 +1,7 @@
 #include "deviceManager.h"
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <bitset>
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "pitank_controllers");
@@ -14,8 +15,8 @@ int main(int argc, char **argv){
     deviceManager.init();
 
     // Register vendorId and productId of the controllers 
-    deviceManager.addControllerType(0x79, 0x06);
-    deviceManager.addControllerType(0x2563, 0x523);
+    deviceManager.addControllerType(0x0079, 0x0006);
+    deviceManager.addControllerType(0x2563, 0x0523);
     // Connect controllers
     deviceManager.getDevices();
 
@@ -27,7 +28,6 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(1);
 
     while(ros::ok()){
-
         // Go through every controller and read its data
         for(int i = 0; i < deviceManager.controllers.size();i++){
             // Check if there was any error opening the device
@@ -58,10 +58,10 @@ int main(int argc, char **argv){
 
                     // See data that is being received
                     printf("controller %d = ", i+1);
-                    for(int j = 0; j< 8;j++){
-                        printf("%d ", USBbuffer[j]); //DEBUG
-                    }
-                    printf("\n");
+
+                    for (int j = 0; j < 8; j++)
+                        std::cout << std::bitset<8>(USBbuffer[j]) << " ";
+                    std::cout << std::endl;
 
                     // Release the controller
                     libusb_release_interface(deviceManager.controllers[i].handler, 0);
