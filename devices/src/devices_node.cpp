@@ -3,31 +3,76 @@
 #include <geometry_msgs/Twist.h>
 
 int main(int argc, char **argv){
-    ros::init(argc, argv, "pitank_devices");
+    ros::init(argc, argv, "pitank_controllers");
     ros::NodeHandle nh;
     geometry_msgs::Twist CmdVel[4];
     ros::Publisher CmdVel_pub[4];
+    unsigned char *USBbuffer;
 
-    DeviceManager device;
-    device.init();
-    device.addDevice(0x79, 0x06);
-    device.addDevice(0x2563, 0x523);
-    device.startDevices();
+    // Helper class
+    DeviceManager deviceManager;
+    deviceManager.init();
 
-    CmdVel_pub[0] = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    // Register vendorId and productId of the controllers 
+    deviceManager.addControllerType(0x79, 0x06);
+    deviceManager.addControllerType(0x2563, 0x523);
+    // Connect controllers
+    deviceManager.getDevices();
+
+    CmdVel_pub[0] = nh.advertise<geometry_msgs::Twist>("/cmd_vel1", 1);
     CmdVel_pub[1] = nh.advertise<geometry_msgs::Twist>("/cmd_vel2", 1);
     CmdVel_pub[2] = nh.advertise<geometry_msgs::Twist>("/cmd_vel3", 1);
     CmdVel_pub[3] = nh.advertise<geometry_msgs::Twist>("/cmd_vel4", 1);
 
-    ros::Rate loop_rate(50);
+    ros::Rate loop_rate(1);
 
     while(ros::ok()){
 
+        // Go through every controller and read its data
+        for(int i = 0; i < deviceManager.controllers.size();i++){
+            // Check if there was any error opening the device
+            // If so search again and attempt to reconnect
+            if (deviceManager.controllers[i].handler==NULL){
+                deviceManager.getDevices();
+            } else{
+                // Take control of the controller
+                // If there was an error release it and search and connect again
+                if(libusb_claim_interface(deviceManager.controllers[i].handler, 0) != 0){
+                    deviceManager.controllers[i].handler=NULL;
+                    deviceManager.getDevices();
+                } else{
+                    // Initialize values to return
+                    CmdVel[i].linear.x 	= 0;
+                    CmdVel[i].linear.z 	= 0;
+                    CmdVel[i].angular.z	= 0;
+                    // Allocate 8 bytes to store controller response + the end byte
+                    USBbuffer = (unsigned char *)calloc(9,1);
+                    int bitsReceived;
+                    // Read the controllers' buffer
+                    libusb_bulk_transfer(deviceManager.controllers[i].handler,0x81,USBbuffer,8,&bitsReceived,1000);
+                    // If empty data was received send 0 too (initial values)
+                    if(bitsReceived == 0){
+                        CmdVel_pub[i].publish(CmdVel[i]);
+                        continue;
+                    }
+
+                    // See data that is being received
+                    printf("controller %d = ", i+1);
+                    for(int j = 0; j< 8;j++){
+                        printf("%d ", USBbuffer[j]); //DEBUG
+                    }
+                    printf("\n");
+
+                    // Release the controller
+                    libusb_release_interface(deviceManager.controllers[i].handler, 0);
+                }
+            }
+        }
         ros::spinOnce();
         loop_rate.sleep();
     }
 
-    device.unload();
+    deviceManager.unload();
 
     return 0;
 }
