@@ -2,10 +2,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <bitset>
-
-/*###############    CONFIGURATION   ###############*/
-#define NUMBER_OF_CONTROLLERS 4
-/*##################################################*/
+#include "configs.h"
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "pitank_controllers");
