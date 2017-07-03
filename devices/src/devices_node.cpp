@@ -3,11 +3,15 @@
 #include <geometry_msgs/Twist.h>
 #include <bitset>
 
+/*###############    CONFIGURATION   ###############*/
+#define NUMBER_OF_CONTROLLERS 4
+/*##################################################*/
+
 int main(int argc, char **argv){
     ros::init(argc, argv, "pitank_controllers");
     ros::NodeHandle nh;
-    geometry_msgs::Twist CmdVel[4];
-    ros::Publisher CmdVel_pub[4];
+    geometry_msgs::Twist CmdVel[NUMBER_OF_CONTROLLERS];
+    ros::Publisher CmdVel_pub[NUMBER_OF_CONTROLLERS];
     unsigned char USBbuffer[9];
 
     // Helper class

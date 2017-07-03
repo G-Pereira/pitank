@@ -7,10 +7,6 @@
 #include <vector>
 #include "libusb/libusb.h"
 
-/*###############    CONFIGURATION   ###############*/
-
-/*##################################################*/
-
 typedef struct{
     uint16_t vendor;
     uint16_t product;
