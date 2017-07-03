@@ -2,7 +2,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <bitset>
-#include "configs.h"
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "pitank_controllers");
