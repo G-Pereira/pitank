@@ -1,13 +1,13 @@
 #include "deviceManager.h"
 #include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/Joy.h>
 #include <bitset>
 
 int main(int argc, char **argv){
-    ros::init(argc, argv, "pitank_controllers");
+    ros::init(argc, argv, "joy_raw");
     ros::NodeHandle nh;
-    geometry_msgs::Twist CmdVel[NUMBER_OF_CONTROLLERS];
-    ros::Publisher CmdVel_pub[NUMBER_OF_CONTROLLERS];
+    sensor_msgs::Joy msgJoy[4];
+    ros::Publisher pubJoy[4];
     unsigned char USBbuffer[9];
 
     // Helper class
@@ -20,10 +20,10 @@ int main(int argc, char **argv){
     // Connect controllers
     deviceManager.getDevices();
 
-    CmdVel_pub[0] = nh.advertise<geometry_msgs::Twist>("/cmd_vel1", 1);
-    CmdVel_pub[1] = nh.advertise<geometry_msgs::Twist>("/cmd_vel2", 1);
-    CmdVel_pub[2] = nh.advertise<geometry_msgs::Twist>("/cmd_vel3", 1);
-    CmdVel_pub[3] = nh.advertise<geometry_msgs::Twist>("/cmd_vel4", 1);
+    pubJoy[0] = nh.advertise<sensor_msgs::Joy>("joy_raw1", 1);
+    pubJoy[1] = nh.advertise<sensor_msgs::Joy>("joy_raw2", 1);
+    pubJoy[2] = nh.advertise<sensor_msgs::Joy>("joy_raw3", 1);
+    pubJoy[3] = nh.advertise<sensor_msgs::Joy>("joy_raw4", 1);
 
     ros::Rate loop_rate(50);
 
@@ -42,28 +42,54 @@ int main(int argc, char **argv){
                     deviceManager.getDevices();
                 } else{
                     // Initialize values to return
-                    CmdVel[i].linear.x 	= 0;
-                    CmdVel[i].linear.z 	= 0;
-                    CmdVel[i].angular.z	= 0;
+                    msgJoy[i].axes.push_back(0.0); // left x
+                    msgJoy[i].axes.push_back(0.0); // left y
+                    msgJoy[i].axes.push_back(0.0); // right x
+                    msgJoy[i].axes.push_back(0.0); // right y
 
                     int bitsReceived;
                     // Read the controllers' buffer
                     libusb_bulk_transfer(deviceManager.controllers[i].handler,0x81,USBbuffer,8,&bitsReceived,1000);
                     // If empty data was received send 0 too (initial values)
                     if(bitsReceived == 0){
-                        CmdVel_pub[i].publish(CmdVel[i]);
+                        pubJoy[i].publish(msgJoy[i]);
                         continue;
                     }
 
                     // See data that is being received
                     printf("controller %d = ", i+1);
 
-                    for (int j = 0; j < 8; j++)
-                        std::cout << std::bitset<8>(USBbuffer[j]) << " ";
-                    std::cout << std::endl;
+                    int j,k;
+
+                    for(j = 0; j < 4; k++){
+                        msgJoy[i].axes.push_back((float)USBbuffer[j]/255.0);
+                    }
+
+                    // Read buttons
+                    for(int j = 5; k < 8; k++){
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/128==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/64==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/32==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/16==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/8==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/4==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/2==1);
+                        msgJoy[i].buttons.push_back(USBbuffer[k]/1==1);
+                    }
+
+                    // Send commands from joystick
+                    pubJoy[i].publish(msgJoy[i]);
 
                     // Release the controller
                     libusb_release_interface(deviceManager.controllers[i].handler, 0);
+                    
+                    for (j = 0; j < 8; j++)
+                        std::cout << std::bitset<8>(USBbuffer[j]) << " ";
+                    std::cout << std::endl;
+                    for (j = 5; j < 8; j++)
+                        std::cout << (int)(USBbuffer[j]/255==1) << " ";
+                    std::cout << std::endl;
+                    std::cout << std::endl;
                 }
             }
         }

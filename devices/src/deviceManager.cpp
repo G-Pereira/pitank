@@ -1,5 +1,4 @@
 #include "deviceManager.h"
-#include "configs.h"
 
 void DeviceManager::init() {
     if (libusb_init(&context) < 0) {
@@ -74,7 +73,7 @@ void DeviceManager::getDevices() {
 
 // Add new or reconected controllers
 int DeviceManager::addController(uint16_t vendorId, uint16_t productId, libusb_device *device, libusb_device_handle *handler) {
-    if (controllers.size() == NUMBER_OF_CONTROLLERS){
+    if (controllers.size() == 4){
         return -1;
     }
     Controller newController;
