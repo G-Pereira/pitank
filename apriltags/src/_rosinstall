@@ -1,0 +1,3 @@
+- git:
+    local-name: gscam
+    uri: https://github.com/ros-drivers/gscam.git
