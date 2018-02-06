@@ -1,0 +1,5 @@
+<launch>
+
+<node pkg="projector_calib" type="p_calib" name="p_calib" output="screen"/>
+
+</launch>
