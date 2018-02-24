@@ -31,6 +31,11 @@ void DeviceManager::getDevices() {
                 if (desc.idVendor == supportedControllers[j].vendor && desc.idProduct == supportedControllers[j].product) {
                     // Controller Found, so add it to our controllers
                     int newDeviceIndex = addController(desc.idVendor, desc.idProduct, devices[i], NULL);
+                    if(newDeviceIndex == -1){
+                        libusb_free_device_list(devices, 1);
+                        fprintf(stderr, "You have at least one controller connected above the supportted limit");
+                        return;
+                    }
                     // Open the controller
                     int open = libusb_open(controllers[newDeviceIndex].usbDevice, &controllers[newDeviceIndex].handler);
                     if (open == 0) {
@@ -61,13 +66,16 @@ void DeviceManager::getDevices() {
     // List lost devices
     for(int i = 0; i< controllers.size(); i++){
         if(controllers[i].handler == NULL){
-            printf("Joystick %d not detected\n", i+1);
+            printf("Joystick %d disconnected\n", i+1);
         }
     }
 }
 
 // Add new or reconected controllers
 int DeviceManager::addController(uint16_t vendorId, uint16_t productId, libusb_device *device, libusb_device_handle *handler) {
+    if (controllers.size() == 4){
+        return -1;
+    }
     Controller newController;
     newController.vendor = vendorId;
     newController.product = productId;
